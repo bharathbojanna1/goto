@@ -22,21 +22,29 @@ def hour_of_day(df: pd.DataFrame) -> pd.DataFrame:
 
 def driver_historical_completed_bookings(df: pd.DataFrame) -> pd.DataFrame:
     """
-    Creates a feature representing the historical number of completed bookings for each driver.
+    Creates a feature representing the historical number of accepted bookings for each driver.
     Drivers with better track records are more likely to accept bookings.
     
-    This computes a cumulative count of completed bookings per driver up to each timestamp,
-    ensuring no data leakage by only counting past completed bookings.
+    This computes a cumulative count of accepted bookings per driver up to each timestamp,
+    ensuring no data leakage by only counting past accepted bookings.
+    
+    NOTE: Sorting by event_timestamp as string works because ISO format naturally sorts correctly.
     """
+    # Make a copy to avoid SettingWithCopyWarning
+    df = df.copy()
+    
     # Sort by driver and timestamp to ensure chronological order
+    # ISO format timestamps sort correctly as strings (YYYY-MM-DD HH:MM:SS)
     df = df.sort_values(['driver_id', 'event_timestamp']).reset_index(drop=True)
     
-    # Create a flag for completed bookings (ACCEPTED status)
+    # Create a flag for accepted bookings
     df['is_accepted'] = (df['participant_status'] == 'ACCEPTED').astype(int)
     
-    # Calculate cumulative completed bookings per driver
-    # Use cumsum() - 1 to exclude current row (avoid data leakage)
-    df['driver_completed_bookings'] = df.groupby('driver_id')['is_accepted'].cumsum() - df['is_accepted']
+    # Calculate cumulative accepted bookings per driver
+    # Subtract current row to avoid data leakage (only count historical acceptances)
+    df['driver_completed_bookings'] = (
+        df.groupby('driver_id')['is_accepted'].cumsum() - df['is_accepted']
+    )
     
     # Drop the temporary column
     df = df.drop('is_accepted', axis=1)
