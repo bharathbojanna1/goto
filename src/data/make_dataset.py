@@ -46,6 +46,13 @@ def merge_dataset(bookings: pd.DataFrame, participants: pd.DataFrame) -> pd.Data
 
 
 def create_target(df: pd.DataFrame, target_col: str) -> pd.DataFrame:
+    """
+    Create binary target variable for driver acceptance prediction.
+    Target = 1 if driver ACCEPTED the booking notification, 0 otherwise.
+    
+    This aligns with the business goal: predict which driver will accept
+    to maximize acceptance rates in the allocation system.
+    """
     df[target_col] = df["participant_status"].apply(lambda x: int(x == "ACCEPTED"))
     return df
 

@@ -1,5 +1,5 @@
 features=["trip_distance", "driver_distance", "event_hour", "driver_gps_accuracy", "driver_completed_bookings"]
-target="is_completed"
+target="is_accepted"
 test_size=0.2
 
 [random_forest]
