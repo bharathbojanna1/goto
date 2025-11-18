@@ -32,10 +32,29 @@ class SklearnClassifier(Classifier):
         self.clf.fit(df_train[self.features].values, df_train[self.target].values)
 
     def evaluate(self, df_test: pd.DataFrame):
-        raise NotImplementedError(
-            f"You're almost there! Identify an appropriate evaluation metric for your model and implement it here. "
-            f"The expected output is a dictionary of the following schema: {{metric_name: metric_score}}"
-        )
+        """
+        Evaluate model performance using multiple classification metrics.
+        
+        For driver allocation, we care about:
+        - Precision: Of drivers we predict will accept, how many actually do?
+        - Recall: Of drivers who actually accept, how many did we identify?
+        - F1: Harmonic mean balancing precision and recall
+        - ROC-AUC: Overall ranking quality across thresholds
+        """
+        from sklearn.metrics import precision_score, recall_score, f1_score, roc_auc_score
+        
+        y_true = df_test[self.target].values
+        y_pred_proba = self.clf.predict_proba(df_test[self.features].values)[:, 1]
+        y_pred = (y_pred_proba >= 0.5).astype(int)
+        
+        metrics = {
+            "precision": float(precision_score(y_true, y_pred, zero_division=0)),
+            "recall": float(recall_score(y_true, y_pred, zero_division=0)),
+            "f1_score": float(f1_score(y_true, y_pred, zero_division=0)),
+            "roc_auc": float(roc_auc_score(y_true, y_pred_proba))
+        }
+        
+        return metrics
 
     def predict(self, df: pd.DataFrame):
         return self.clf.predict_proba(df[self.features].values)[:, 1]
