@@ -21,7 +21,24 @@ def hour_of_day(df: pd.DataFrame) -> pd.DataFrame:
 
 
 def driver_historical_completed_bookings(df: pd.DataFrame) -> pd.DataFrame:
-    raise NotImplementedError(
-        f"Show us your feature engineering skills! Suppose that drivers with a good track record are more likely to accept bookings. "
-        f"Implement a feature that describes the number of historical bookings that each driver has completed."
-    )
+    """
+    Creates a feature representing the historical number of completed bookings for each driver.
+    Drivers with better track records are more likely to accept bookings.
+    
+    This computes a cumulative count of completed bookings per driver up to each timestamp,
+    ensuring no data leakage by only counting past completed bookings.
+    """
+    # Sort by driver and timestamp to ensure chronological order
+    df = df.sort_values(['driver_id', 'event_timestamp']).reset_index(drop=True)
+    
+    # Create a flag for completed bookings (ACCEPTED status)
+    df['is_accepted'] = (df['participant_status'] == 'ACCEPTED').astype(int)
+    
+    # Calculate cumulative completed bookings per driver
+    # Use cumsum() - 1 to exclude current row (avoid data leakage)
+    df['driver_completed_bookings'] = df.groupby('driver_id')['is_accepted'].cumsum() - df['is_accepted']
+    
+    # Drop the temporary column
+    df = df.drop('is_accepted', axis=1)
+    
+    return df
