@@ -13,7 +13,12 @@ def main():
     config = load_config()
 
     df = store.get_processed("transformed_dataset.csv")
-    df_train, df_test = train_test_split(df, test_size=config["test_size"])
+    # Use same random_state as model for reproducibility
+    df_train, df_test = train_test_split(
+        df, 
+        test_size=config["test_size"],
+        random_state=config["random_forest"]["random_state"]
+    )
 
     rf_estimator = RandomForestClassifier(**config["random_forest"])
     model = SklearnClassifier(rf_estimator, config["features"], config["target"])
