@@ -27,8 +27,11 @@ def clean_booking_df(df: pd.DataFrame) -> pd.DataFrame:
         "pickup_latitude",
         "pickup_longitude",
     ]
+    # Keep all necessary columns including event_timestamp (needed for temporal features)
+    # Only deduplicate based on the unique_columns to keep one booking per order
     df = df.drop_duplicates(subset=unique_columns)
-    return df[unique_columns]
+    # Return all columns, not just unique_columns
+    return df
 
 
 def clean_participant_df(df: pd.DataFrame) -> pd.DataFrame:
